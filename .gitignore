@@ -1,0 +1,5 @@
+/gen.mid
+.vscode/
+__pycache__
+train_data/
+model.h5
