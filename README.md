@@ -1,3 +1,3 @@
 # muse_gen
 
-Примеры сгенерированных композиций: https://soundcloud.com/eugene-zhavoronok
+Примеры сгенерированных композиций: https://soundcloud.com/eugene-zhavoronok/sets
