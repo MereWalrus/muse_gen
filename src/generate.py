@@ -1,4 +1,4 @@
-from params_and_consts import save_path, vocab_size, embedding_dim, rnn_units, start_event
+from params_and_consts import save_path, vocab_size, embedding_dim, rnn_units, start_event, generation_length
 from model import build_model
 
 import muspy
@@ -16,20 +16,23 @@ def get_gen_model():
     return gen_model
 
 def generate_notes(model, start, generation_length=100):
-    input_eval = start
-    input_eval = tf.expand_dims(input_eval, 0)
+    input_seq = start
+    input_seq = tf.expand_dims(input_seq, 0)
 
     notes_generated = []
 
     model.reset_states()
 
     for _ in range(generation_length):
-        predictions = model(input_eval)
+        predictions = model(input_seq)
         predictions = tf.squeeze(predictions, 0)
             
         predicted_id = tf.random.categorical(predictions, num_samples=1)[-1,0].numpy()
-        input_eval = tf.expand_dims([predicted_id], 0)
         notes_generated.append(predicted_id)
+        predicted_id_exp = tf.constant([predicted_id], dtype=np.int32)
+
+        input_seq = tf.concat([input_seq[0], predicted_id_exp], 0)
+        input_seq = tf.expand_dims(input_seq, axis=0)
 
     return (start + notes_generated)
 
@@ -39,8 +42,8 @@ def arr_to_event_repr(arr):
 
 def main():
     gen_model = get_gen_model()
-    generated_text = generate_notes(gen_model, start=[start_event], generation_length=300)
-    generated_events = arr_to_event_repr(generated_text)
+    generated_notes = generate_notes(gen_model, start=[start_event], generation_length=generation_length)
+    generated_events = arr_to_event_repr(generated_notes)
     generated_muspy = muspy.inputs.from_event_representation(generated_events)
     midi_program = 0
     generated_muspy[0].program = midi_program
